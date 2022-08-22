@@ -9,6 +9,41 @@ uint16_t term;
 
 uint8_t falling_cnt = 0;
 
+void fast_pwm_init(void)
+{
+    cbi(SREG, 7);
+
+    sbi(TCCR3A, COM1A1);
+    cbi(TCCR3A, COM1A0);    // OC3A for DC Motor(Fast-PWM, non-inverting mode)
+                            //If one or both of the COM1A1:0 bits are set, the
+                            // OC3A output overrides the normal port functionality of the I/O pin it is connected to.
+
+    sbi(TCCR4A, COM4C1);
+    cbi(TCCR4A, COM4C0);    // OC4C for Servo Motor(Fast-PWM, non-inverting mode)
+                            //If one or both of the COM4C1:0 bits are set, the
+                            // OC4C output overrides the normal port functionality of the I/O pin it is connected to.
+
+    cbi(TCCR3B, (CS02 | CS00));
+    sbi(TCCR3B, CS01);
+
+    cbi(TCCR4B, (CS02 | CS00));
+    sbi(TCCR4B, CS01);  //prescaler : 8 -> clock source frequecy : 16/ 8 = 2MHz
+
+    sbi(TCCR3A, WGM31);
+    cbi(TCCR3A, WGM30);
+    sbi(TCCR3B, (WGM33 | WGM32));   // OC3x Fast-PWM Mode
+    ICR3 = 39999;    // period : 20ms frequency : 50Hz
+
+    sbi(TCCR4A, WGM41);
+    cbi(TCCR4A, WGM40);
+    sbi(TCCR4B, (WGM43 | WGM42));   // OC4x Fast-PWM Mode
+    ICR4 = 39999;    // period : 20ms frequency : 50Hz
+
+    sbi(DDRE, DDE3);
+    //sbi(DDRH, DDH5);    // DDR bit corresponding to the OC0A pin must be set in order to enable the output driver.
+
+    sbi(SREG, 7);
+}
 
 int main(void)
 {
@@ -20,13 +55,14 @@ int main(void)
     printf("RF PPM Timer Set Success!\n\r\0");
     rf_receiver_init();
     printf("RF Receiver Init Success!\n\r\0");
+    fast_pwm_init();
+    printf("Fast PWM Init Success!\n\r\0");
 
     while(1)
     {
         printf("ch1: %d, ch2: %d, ch3: %d, ch4: %d, ch5: %d, ch6: %d, ch7: %d, ch8: %d, remainder: %d\n\r\0",\
                 receiver1.ch1, receiver1.ch2, receiver1.ch3, receiver1.ch4,\
                 receiver1.ch5, receiver1.ch6, receiver1.ch7, receiver1.ch8, receiver1.remainder_value);
-        printf("servo : %d\r\n\0", OCR3A);
         _delay_ms(500);
     }
 

@@ -1,8 +1,5 @@
-#define F_CPU       16000000UL
-
+#include "common.h"
 #include "uart.h"
-
-#define UART_BUF                (10)
 
 
 void uart_init (void)

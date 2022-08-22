@@ -1,8 +1,6 @@
 #ifndef __UART_H__
 #define __UART_H__
 
-#include <avr/io.h>
-#include <util/delay.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
